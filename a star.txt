@@ -1,0 +1,242 @@
+import heapq
+
+# Heuristic function: Manhattan distance
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+# A* Algorithm
+def a_star(grid, start, goal):
+    open_list = [(0 + heuristic(start, goal), 0, start)]  # (f_score, g_score, position)
+    came_from = {}  # For path reconstruction
+    visited = set()
+
+    while open_list:
+        _, g, current = heapq.heappop(open_list)
+
+        if current in visited:
+            continue
+        visited.add(current)
+
+        if current == goal:
+            # Reconstruct the path
+            path = [current]
+            while current in came_from:
+                current = came_from[current]
+                path.append(current)
+            return path[::-1]
+
+        # Explore 4 directions (up, down, right, left)
+        for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+            neighbor = (current[0] + dx, current[1] + dy)
+
+            # Check boundaries and walls (0 = walkable)
+            if (0 <= neighbor[0] < len(grid)) and (0 <= neighbor[1] < len(grid[0])) and grid[neighbor[0]][neighbor[1]] == 0:
+                new_g = g + 1
+                f = new_g + heuristic(neighbor, goal)
+                heapq.heappush(open_list, (f, new_g, neighbor))
+                if neighbor not in came_from or new_g < g:
+                    came_from[neighbor] = current
+
+    return None  # No path found
+
+# Input
+n, m = map(int, input("Grid size (rows cols): ").split())
+grid = [list(map(int, input(f"Row {i+1} (0 for open, 1 for wall): ").split())) for i in range(n)]
+start = tuple(map(int, input("Start position (row col): ").split()))
+goal = tuple(map(int, input("Goal position (row col): ").split()))
+
+# Run A*
+path = a_star(grid, start, goal)
+if path:
+    print("Path found:")
+    for step in path:
+        print(step)
+else:
+    print("No path found.")
+
+
+
+
+Explanation: 
+This Python code implements the **A\*** (A-Star) **pathfinding algorithm**, which finds the shortest path from a start point to a goal point in a grid, avoiding obstacles (represented as `1` in the grid).
+
+Let’s break it down:
+
+---
+
+### 🔧 `import heapq`
+- This imports the `heapq` module, which allows us to use a **priority queue** (min-heap) to efficiently get the next node with the lowest cost (`f_score`) in the algorithm.
+
+---
+
+### 🚩 `heuristic(a, b)`
+```python
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
+```
+- This is the **Manhattan Distance**: a heuristic that estimates the cost from a point `a` to point `b` by summing the absolute differences of their coordinates. It's appropriate for grid-based movement without diagonals.
+
+---
+
+### 🧠 `a_star(grid, start, goal)`
+This is the main function implementing the A\* algorithm.
+
+#### 🔍 Variables:
+- **`open_list`**: a priority queue of nodes to explore, sorted by estimated total cost `f = g + h`
+- **`came_from`**: dictionary to trace the path back once goal is reached
+- **`visited`**: set of already explored nodes
+
+#### 🧭 Core Loop:
+```python
+while open_list:
+    _, g, current = heapq.heappop(open_list)
+```
+- Pops the node with the smallest `f` value (best guess at lowest total cost path).
+
+#### ✅ If goal is reached:
+```python
+if current == goal:
+```
+- Reconstructs and returns the path using the `came_from` map.
+
+#### 🔄 Exploring neighbors:
+```python
+for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+```
+- Explores up, down, left, right (no diagonals).
+
+#### ✅ Valid move check:
+```python
+if (0 <= neighbor[0] < len(grid)) and (0 <= neighbor[1] < len(grid[0])) and grid[neighbor[0]][neighbor[1]] == 0:
+```
+- Ensures the neighbor is inside the grid and not a wall (`1`).
+
+#### ➕ Add neighbor to queue:
+```python
+heapq.heappush(open_list, (f, new_g, neighbor))
+```
+- Adds valid neighbors to the queue, prioritized by `f = g + h`.
+
+---
+
+### 🧪 Input/Output
+```python
+n, m = map(int, input().split())
+grid = [...]
+start = tuple(map(int, input().split()))
+goal = tuple(map(int, input().split()))
+```
+- User inputs grid size, grid values (0=open, 1=wall), start and goal positions.
+- Calls `a_star()` and prints the path if found.
+
+---
+
+### ✅ Sample Run:
+```
+Grid size (rows cols): 3 3
+Row 1 (0 for open, 1 for wall): 0 0 0
+Row 2 (0 for open, 1 for wall): 1 1 0
+Row 3 (0 for open, 1 for wall): 0 0 0
+Start position (row col): 0 0
+Goal position (row col): 2 2
+```
+
+➡️ Output:
+```
+Path found:
+(0, 0)
+(0, 1)
+(0, 2)
+(1, 2)
+(2, 2)
+```
+
+---
+
+Let me know if you want a visualization for this or want to modify it to allow diagonal movement!
+
+This block of code handles **reconstructing the path** once the A\* algorithm reaches the **goal node**. Let’s break it down step by step:
+
+---
+
+### 🔍 Code:
+```python
+if current == goal:
+    # Reconstruct the path
+    path = [current]
+    while current in came_from:
+        current = came_from[current]
+        path.append(current)
+    return path[::-1]
+```
+
+---
+
+### 💡 What's happening?
+
+#### ✅ `if current == goal:`
+- This checks if the current node being explored is the goal.
+- If true, we’ve **found a path** and now need to trace it back from goal to start.
+
+---
+
+### 🔁 Reconstructing the path:
+```python
+path = [current]
+```
+- Start the path with the goal node.
+
+```python
+while current in came_from:
+    current = came_from[current]
+    path.append(current)
+```
+- This loop goes **backward** from the goal to the start, by following the `came_from` dictionary.
+- `came_from[node]` tells us which node we came from to reach `node`.
+
+---
+
+### 🔄 Reverse the path:
+```python
+return path[::-1]
+```
+- Since we built the path **backwards** (goal to start), we reverse it to get the correct order: **start to goal**.
+
+---
+
+### 📌 Example:
+
+Suppose the final path is:
+```
+came_from = {
+  (2,2): (1,2),
+  (1,2): (0,2),
+  (0,2): (0,1),
+  (0,1): (0,0)
+}
+```
+
+Goal = `(2,2)`
+
+Then:
+```
+path = [(2,2)]
+current = (2,2)
+→ (1,2) → (0,2) → (0,1) → (0,0)
+```
+
+Final path after reverse:
+```
+[(0,0), (0,1), (0,2), (1,2), (2,2)]
+```
+
+---
+
+Let me know if you want this path printed visually on the grid!
+
+if (0 <= neighbor[0] < len(grid)) and (0 <= neighbor[1] < len(grid[0])) and grid[neighbor[0]][neighbor[1]] == 0:
+                new_g = g + 1
+                f = new_g + heuristic(neighbor, goal)
+                heapq.heappush(open_list, (f, new_g, neighbor))
+                if neighbor not in came_from or new_g < g:
+                    came_from[neighbor] = current

@@ -1,0 +1,62 @@
+# Define the graph
+graph = { 
+    "5": ["3", "7"], 
+    "3": ["2", "4"], 
+    "7": ["8"], 
+    "2": [], 
+    "4": ["8"], 
+    "8": [] 
+}
+
+# DFS (Depth-First Search)
+def DFS(graph, node):
+    stack = [node] 
+    visited = [] 
+    print("\nOrder of visited nodes by DFS:", end=" ") 
+
+    while stack: 
+        s = stack.pop()
+        if s not in visited:
+            visited.append(s)
+            print(s, end=" ")
+            for neighbour in reversed(graph[s]):  # reversed to maintain left-to-right DFS
+                if neighbour not in visited:
+                    stack.append(neighbour)
+
+# BFS (Breadth-First Search)
+def BFS(graph, node): 
+    queue = [node] 
+    visited = [node] 
+    print("\nOrder of visited nodes by BFS:", end=" ") 
+
+    while queue: 
+        m = queue.pop(0)
+        print(m, end=" ") 
+        for neighbour in graph[m]:
+            if neighbour not in visited:
+                queue.append(neighbour)
+                visited.append(neighbour)
+
+# Main controller
+def main():
+    print("Graph Nodes:", list(graph.keys()))
+    node = input("Enter the starting node: ")
+
+    if node not in graph:
+        print("Invalid starting node.")
+        return
+
+    print("Choose Traversal Method:\n1. BFS\n2. DFS")
+    choice = input("Enter 1 or 2: ")
+
+    match choice:
+        case "1":
+            BFS(graph, node)
+        case "2":
+            DFS(graph, node)
+        case _:
+            print("Invalid choice.")
+
+# Run program
+if __name__ == "__main__":
+    main()
